@@ -1,4 +1,4 @@
-const { UserPurchase } = require('../models');
+const UserPurchase = require('../models/UserPurchase');
 
 exports.checkAccess = async (req, res) => {
   const { phone } = req.params;

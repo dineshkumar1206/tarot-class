@@ -16,14 +16,7 @@ const Navigation = () => {
           </div>
 
           <div className="hidden md:flex space-x-8 items-center">
-            <a href="#video-lessons" className="text-slate-300 hover:text-amber-500 transition-colors flex items-center gap-2 font-medium">
-              <PlayCircle className="w-5 h-5" />
-              Video Lessons
-            </a>
-            <a href="#study-guides" className="text-slate-300 hover:text-amber-500 transition-colors flex items-center gap-2 font-medium">
-              <BookOpen className="w-5 h-5" />
-              Study Guides (PDFs)
-            </a>
+            {/* Nav links removed per request */}
           </div>
 
           <div className="flex items-center">

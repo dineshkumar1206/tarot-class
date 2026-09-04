@@ -4,7 +4,21 @@ const cors = require('cors');
 const morgan = require('morgan');
 const multer = require('multer');
 const path = require('path');
-const { sequelize, Course, CourseVideo, CourseMaterial, UserPurchase } = require('./models');
+const sequelize = require('./config/db');
+const Course = require('./models/Course');
+const CourseVideo = require('./models/CourseVideo');
+const CourseMaterial = require('./models/CourseMaterial');
+const UserPurchase = require('./models/UserPurchase');
+
+// Associations
+Course.hasMany(CourseVideo, { foreignKey: 'course_id', as: 'videos' });
+CourseVideo.belongsTo(Course, { foreignKey: 'course_id' });
+
+Course.hasMany(CourseMaterial, { foreignKey: 'course_id', as: 'materials' });
+CourseMaterial.belongsTo(Course, { foreignKey: 'course_id' });
+
+Course.hasMany(UserPurchase, { foreignKey: 'course_id', as: 'purchases' });
+UserPurchase.belongsTo(Course, { foreignKey: 'course_id' });
 
 // Route imports
 const contentRoutes = require('./routes/contentRoutes');
@@ -14,13 +28,15 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: ['https://tarot-class.vercel.app', 'http://localhost:5173'],
+  credentials: true
+}));
 app.use(express.json());
 app.use(morgan('dev')); // Logging
 
-// Multer setup for video uploads (stored in memory to save to DB)
-const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
+// Serve static files (like uploaded videos)
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Health Check Endpoint
 app.get('/api/health', async (req, res) => {
@@ -45,27 +61,7 @@ app.get('/api/health', async (req, res) => {
 app.use('/api/content', contentRoutes);
 app.use('/api/check-access', accessRoutes);
 
-// Example upload endpoint placeholder
-app.post('/api/upload/video', upload.single('video'), async (req, res) => {
-  if (!req.file) return res.status(400).json({ error: 'No video uploaded' });
-  
-  try {
-    // Assuming course_id and lesson_number come from req.body
-    const { course_id, lesson_number, title } = req.body;
-    
-    const newVideo = await CourseVideo.create({
-      course_id: course_id || 1, // Defaulting to 1 for MVP
-      lesson_number: lesson_number || 4,
-      title: title || 'New Uploaded Video',
-      video_data: req.file.buffer // Storing the file buffer directly in MySQL
-    });
-
-    res.json({ success: true, message: 'Video stored in database successfully', videoId: newVideo.id });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to store video in database' });
-  }
-});
+// (Old placeholder upload endpoint removed)
 
 // Sync and Seed Database
 const syncAndSeed = async () => {

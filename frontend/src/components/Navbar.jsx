@@ -13,6 +13,7 @@ const Navbar = () => {
           </div>
 
           <div className="flex space-x-6 items-center text-sm font-semibold tracking-wider text-slate-300 uppercase">
+            <Link to="/" className="hover:text-[#c19b52] transition-colors">Home</Link>
             <Link to="/videos" className="hover:text-[#c19b52] transition-colors">Pre recorded Video Class</Link>
             <Link to="/#pdfs" className="hover:text-[#c19b52] transition-colors">PDF study material</Link>
             <Link 
