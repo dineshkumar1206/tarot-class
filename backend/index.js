@@ -39,6 +39,10 @@ app.use(morgan('dev')); // Logging
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Health Check Endpoint
+app.get('/', (req, res) => {
+  res.send('Tarot Classes API is running');
+});
+
 app.get('/api/health', async (req, res) => {
   try {
     await sequelize.authenticate();
