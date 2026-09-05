@@ -47,11 +47,11 @@ exports.getCourseContent = async (req, res) => {
 exports.addVideo = async (req, res) => {
   try {
     const { course_id, title, description, duration, lesson_number } = req.body;
-    
+
     let videoUrl = req.body.video_url;
     if (req.file) {
-      // Force HTTPS to prevent Mixed Content errors on the Vercel frontend
-      videoUrl = `https://${req.get('host')}/uploads/videos/${req.file.filename}`;
+      // Add /api prefix because the cPanel Node app is mounted at /api
+      videoUrl = `https://${req.get('host')}/api/uploads/videos/${req.file.filename}`;
     }
 
     let finalCourseId = course_id;
@@ -80,13 +80,13 @@ exports.updateVideo = async (req, res) => {
   try {
     const { id } = req.params;
     const { title, description, duration, lesson_number } = req.body;
-    
+
     const video = await CourseVideo.findByPk(id);
     if (!video) return res.status(404).json({ success: false, error: 'Video not found' });
 
     let videoUrl = video.video_url;
     if (req.file) {
-      videoUrl = `https://${req.get('host')}/uploads/videos/${req.file.filename}`;
+      videoUrl = `https://${req.get('host')}/api/uploads/videos/${req.file.filename}`;
     } else if (req.body.video_url) {
       videoUrl = req.body.video_url;
     }
@@ -110,9 +110,9 @@ exports.deleteVideo = async (req, res) => {
   try {
     const { id } = req.params;
     const video = await CourseVideo.findByPk(id);
-    
+
     if (!video) return res.status(404).json({ success: false, error: 'Video not found' });
-    
+
     await video.destroy();
     res.json({ success: true, message: 'Video deleted successfully' });
   } catch (error) {
@@ -127,10 +127,10 @@ exports.deleteVideo = async (req, res) => {
 exports.addMaterial = async (req, res) => {
   try {
     const { course_id, title, description, file_size } = req.body;
-    
+
     let fileUrl = req.body.file_url;
     if (req.file) {
-      fileUrl = `https://${req.get('host')}/uploads/materials/${req.file.filename}`;
+      fileUrl = `https://${req.get('host')}/api/uploads/materials/${req.file.filename}`;
     }
 
     let finalCourseId = course_id;
@@ -158,13 +158,13 @@ exports.updateMaterial = async (req, res) => {
   try {
     const { id } = req.params;
     const { title, description, file_size } = req.body;
-    
+
     const material = await CourseMaterial.findByPk(id);
     if (!material) return res.status(404).json({ success: false, error: 'Material not found' });
 
     let fileUrl = material.file_url;
     if (req.file) {
-      fileUrl = `https://${req.get('host')}/uploads/materials/${req.file.filename}`;
+      fileUrl = `https://${req.get('host')}/api/uploads/materials/${req.file.filename}`;
     } else if (req.body.file_url) {
       fileUrl = req.body.file_url;
     }
@@ -187,9 +187,9 @@ exports.deleteMaterial = async (req, res) => {
   try {
     const { id } = req.params;
     const material = await CourseMaterial.findByPk(id);
-    
+
     if (!material) return res.status(404).json({ success: false, error: 'Material not found' });
-    
+
     await material.destroy();
     res.json({ success: true, message: 'Material deleted successfully' });
   } catch (error) {

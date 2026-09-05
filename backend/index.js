@@ -36,7 +36,7 @@ app.use(express.json());
 app.use(morgan('dev')); // Logging
 
 // Serve static files (like uploaded videos)
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Health Check Endpoint
 app.get('/', (req, res) => {
