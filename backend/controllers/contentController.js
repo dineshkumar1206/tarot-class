@@ -48,10 +48,10 @@ exports.addVideo = async (req, res) => {
   try {
     const { course_id, title, description, duration, lesson_number } = req.body;
     
-    // Check if a file was uploaded; if so, construct the URL
     let videoUrl = req.body.video_url;
     if (req.file) {
-      videoUrl = `${req.protocol}://${req.get('host')}/uploads/videos/${req.file.filename}`;
+      // Force HTTPS to prevent Mixed Content errors on the Vercel frontend
+      videoUrl = `https://${req.get('host')}/uploads/videos/${req.file.filename}`;
     }
 
     let finalCourseId = course_id;
@@ -86,7 +86,7 @@ exports.updateVideo = async (req, res) => {
 
     let videoUrl = video.video_url;
     if (req.file) {
-      videoUrl = `${req.protocol}://${req.get('host')}/uploads/videos/${req.file.filename}`;
+      videoUrl = `https://${req.get('host')}/uploads/videos/${req.file.filename}`;
     } else if (req.body.video_url) {
       videoUrl = req.body.video_url;
     }
@@ -130,7 +130,7 @@ exports.addMaterial = async (req, res) => {
     
     let fileUrl = req.body.file_url;
     if (req.file) {
-      fileUrl = `${req.protocol}://${req.get('host')}/uploads/materials/${req.file.filename}`;
+      fileUrl = `https://${req.get('host')}/uploads/materials/${req.file.filename}`;
     }
 
     let finalCourseId = course_id;
@@ -164,7 +164,7 @@ exports.updateMaterial = async (req, res) => {
 
     let fileUrl = material.file_url;
     if (req.file) {
-      fileUrl = `${req.protocol}://${req.get('host')}/uploads/materials/${req.file.filename}`;
+      fileUrl = `https://${req.get('host')}/uploads/materials/${req.file.filename}`;
     } else if (req.body.file_url) {
       fileUrl = req.body.file_url;
     }
