@@ -3,11 +3,17 @@ const router = express.Router();
 const contentController = require('../controllers/contentController');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 
 // Multer Config for Video Uploads
+const videoDir = path.join(__dirname, '../uploads/videos/');
+if (!fs.existsSync(videoDir)) {
+  fs.mkdirSync(videoDir, { recursive: true });
+}
+
 const videoStorage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, path.join(__dirname, '../uploads/videos/'));
+    cb(null, videoDir);
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -20,9 +26,14 @@ const uploadVideo = multer({
 });
 
 // Multer Config for Material Uploads
+const materialDir = path.join(__dirname, '../uploads/materials/');
+if (!fs.existsSync(materialDir)) {
+  fs.mkdirSync(materialDir, { recursive: true });
+}
+
 const materialStorage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, path.join(__dirname, '../uploads/materials/'));
+    cb(null, materialDir);
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
