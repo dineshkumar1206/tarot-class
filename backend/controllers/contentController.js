@@ -51,7 +51,7 @@ exports.addVideo = async (req, res) => {
     let videoUrl = req.body.video_url;
     if (req.file) {
       // Add /api prefix because the cPanel Node app is mounted at /api
-      videoUrl = `https://${req.get('host')}/api/uploads/videos/${req.file.filename}`;
+      videoUrl = `${req.protocol}://${req.get('host')}/api/uploads/videos/${req.file.filename}`;
     }
 
     let finalCourseId = course_id;
@@ -86,7 +86,7 @@ exports.updateVideo = async (req, res) => {
 
     let videoUrl = video.video_url;
     if (req.file) {
-      videoUrl = `https://${req.get('host')}/api/uploads/videos/${req.file.filename}`;
+      videoUrl = `${req.protocol}://${req.get('host')}/api/uploads/videos/${req.file.filename}`;
     } else if (req.body.video_url) {
       videoUrl = req.body.video_url;
     }
@@ -130,7 +130,7 @@ exports.addMaterial = async (req, res) => {
 
     let fileUrl = req.body.file_url;
     if (req.file) {
-      fileUrl = `https://${req.get('host')}/api/uploads/materials/${req.file.filename}`;
+      fileUrl = `${req.protocol}://${req.get('host')}/api/uploads/materials/${req.file.filename}`;
     }
 
     let finalCourseId = course_id;
@@ -164,7 +164,7 @@ exports.updateMaterial = async (req, res) => {
 
     let fileUrl = material.file_url;
     if (req.file) {
-      fileUrl = `https://${req.get('host')}/api/uploads/materials/${req.file.filename}`;
+      fileUrl = `${req.protocol}://${req.get('host')}/api/uploads/materials/${req.file.filename}`;
     } else if (req.body.file_url) {
       fileUrl = req.body.file_url;
     }

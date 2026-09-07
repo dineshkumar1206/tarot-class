@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { useContent } from '../../hooks/useContent';
 import { Link } from 'react-router-dom';
+import VideoModal from '../VideoModal';
 
 const PreRecordedCourses = () => {
   const { videos, loading } = useContent();
+  const [selectedVideo, setSelectedVideo] = useState(null);
 
   if (loading) {
     return (
@@ -32,7 +34,10 @@ const PreRecordedCourses = () => {
                 data-aos="fade-up"
                 data-aos-delay={idx * 100}
               >
-                <div className="aspect-[16/10] relative overflow-hidden bg-black flex items-center justify-center group">
+                <div 
+                  className="aspect-[16/10] relative overflow-hidden bg-black flex items-center justify-center group cursor-pointer"
+                  onClick={() => setSelectedVideo(course)}
+                >
                   <video 
                     className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
                     preload="metadata"
@@ -67,6 +72,12 @@ const PreRecordedCourses = () => {
         </div>
 
       </div>
+      
+      <VideoModal 
+        isOpen={!!selectedVideo} 
+        onClose={() => setSelectedVideo(null)} 
+        video={selectedVideo} 
+      />
     </section>
   );
 };

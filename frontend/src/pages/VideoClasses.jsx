@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Navbar from '../components/Navbar';
 import { ArrowRight } from 'lucide-react';
 import { useContent } from '../hooks/useContent';
+import VideoModal from '../components/VideoModal';
 
 const VideoClasses = () => {
   const { videos, loading } = useContent();
+  const [selectedVideo, setSelectedVideo] = useState(null);
 
   return (
     <div className="min-h-screen font-sans selection:bg-[#c19b52]/30">
@@ -37,15 +39,22 @@ const VideoClasses = () => {
                     data-aos="fade-up"
                     data-aos-delay={idx * 100}
                   >
-                    <div className="aspect-video relative overflow-hidden bg-black">
+                    <div 
+                      className="aspect-video relative overflow-hidden bg-black cursor-pointer group flex items-center justify-center"
+                      onClick={() => setSelectedVideo(course)}
+                    >
                       <video 
-                        controls 
                         preload="metadata"
-                        className="w-full h-full object-contain bg-black"
+                        className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
                         src={course.video_url || course.url}
                       >
                         Your browser does not support the video tag.
                       </video>
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <div className="w-14 h-14 bg-black/50 rounded-full flex items-center justify-center backdrop-blur-sm group-hover:bg-[#c19b52] group-hover:scale-110 transition-all duration-300">
+                          <div className="w-0 h-0 border-t-[10px] border-t-transparent border-l-[16px] border-l-white border-b-[10px] border-b-transparent ml-1"></div>
+                        </div>
+                      </div>
                     </div>
                     
                     <div className="p-5 flex flex-col flex-1">
@@ -57,7 +66,10 @@ const VideoClasses = () => {
                           <span className="text-xs font-semibold text-slate-400 bg-slate-100 px-2 py-1 rounded">
                             {course.duration || 'N/A'}
                           </span>
-                          <button className="text-sm font-bold text-slate-800 flex items-center gap-1 hover:text-[#c19b52] transition-colors group">
+                          <button 
+                            onClick={() => setSelectedVideo(course)}
+                            className="text-sm font-bold text-slate-800 flex items-center gap-1 hover:text-[#c19b52] transition-colors group"
+                          >
                             Watch <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                           </button>
                         </div>
@@ -70,6 +82,12 @@ const VideoClasses = () => {
           )}
         </div>
       </main>
+      
+      <VideoModal 
+        isOpen={!!selectedVideo} 
+        onClose={() => setSelectedVideo(null)} 
+        video={selectedVideo} 
+      />
     </div>
   );
 };
