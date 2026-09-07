@@ -25,7 +25,7 @@ const mockPdfs = [
     title: 'Major Arcana Symbolic Reference Sheet',
     description: 'A quick guide to all 22 Major Arcana cards and their core meanings.',
     file_size: '2.4 MB',
-    file_url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf'
+    file_url: 'https://www.orimi.com/pdf-test.pdf'
   }
 ];
 
@@ -40,10 +40,24 @@ export const useContent = () => {
       if (!response.ok) throw new Error('Network response was not ok');
       const json = await response.json();
       
-      // Map API response to our expected keys if needed, 
-      // although the backend should be returning them correctly now.
-      setVideos(json.data.videos || mockVideos);
-      setPdfs(json.data.pdfs || mockPdfs);
+      let fetchedVideos = json.data.videos || mockVideos;
+      let fetchedPdfs = json.data.pdfs || mockPdfs;
+
+      // Fix HTTP/HTTPS mixed content and w3.org CSP issues on the fly
+      const fixUrl = (url) => {
+        if (!url) return url;
+        if (url.includes('w3.org')) return 'https://www.orimi.com/pdf-test.pdf';
+        if (config.API_BASE_URL.startsWith('https://')) {
+          return url.replace('http://amigowebster.in', 'https://amigowebster.in');
+        }
+        return url;
+      };
+
+      fetchedVideos = fetchedVideos.map(v => ({ ...v, video_url: fixUrl(v.video_url), url: fixUrl(v.url) }));
+      fetchedPdfs = fetchedPdfs.map(p => ({ ...p, file_url: fixUrl(p.file_url), url: fixUrl(p.url) }));
+
+      setVideos(fetchedVideos);
+      setPdfs(fetchedPdfs);
     } catch (error) {
       console.warn('Backend unavailable or error occurred, using mock data:', error);
       setVideos(mockVideos);
