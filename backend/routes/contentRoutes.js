@@ -48,10 +48,13 @@ const uploadMaterial = multer({
 // Get all course content
 router.get('/', contentController.getCourseContent);
 
+const chunkUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
+
 // Video CRUD
 router.post('/video', uploadVideo.single('video_file'), contentController.addVideo);
 router.put('/video/:id', uploadVideo.single('video_file'), contentController.updateVideo);
 router.delete('/video/:id', contentController.deleteVideo);
+router.post('/upload-chunk', chunkUpload.single('chunk'), contentController.uploadChunk);
 
 // Material (PDF) CRUD
 router.post('/material', uploadMaterial.single('material_file'), contentController.addMaterial);

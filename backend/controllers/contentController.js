@@ -1,6 +1,8 @@
 const Course = require('../models/Course');
 const CourseVideo = require('../models/CourseVideo');
 const CourseMaterial = require('../models/CourseMaterial');
+const fs = require('fs');
+const path = require('path');
 
 // Get all course content
 exports.getCourseContent = async (req, res) => {
@@ -118,6 +120,47 @@ exports.deleteVideo = async (req, res) => {
   } catch (error) {
     console.error('Error deleting video:', error);
     res.status(500).json({ success: false, error: 'Internal Server Error' });
+  }
+};
+
+exports.uploadChunk = async (req, res) => {
+  try {
+    const { chunkIndex, totalChunks, identifier, fileName } = req.body;
+    const chunkFile = req.file;
+
+    if (!chunkFile) {
+      return res.status(400).json({ error: 'No chunk file provided' });
+    }
+
+    const tempDir = path.join(__dirname, '../uploads/videos/temp');
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir, { recursive: true });
+    }
+
+    const tempFilePath = path.join(tempDir, identifier);
+
+    fs.appendFileSync(tempFilePath, chunkFile.buffer);
+
+    const isLastChunk = parseInt(chunkIndex) === parseInt(totalChunks) - 1;
+
+    if (isLastChunk) {
+      const finalDir = path.join(__dirname, '../uploads/videos/');
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      const ext = path.extname(fileName);
+      const finalFileName = 'video-' + uniqueSuffix + ext;
+      const finalFilePath = path.join(finalDir, finalFileName);
+
+      fs.renameSync(tempFilePath, finalFilePath);
+
+      const videoUrl = `${req.protocol}://${req.get('host')}/api/uploads/videos/${finalFileName}`;
+      
+      return res.json({ success: true, completed: true, videoUrl });
+    }
+
+    res.json({ success: true, completed: false });
+  } catch (error) {
+    console.error('Error uploading chunk:', error);
+    res.status(500).json({ success: false, error: 'Chunk upload failed' });
   }
 };
 

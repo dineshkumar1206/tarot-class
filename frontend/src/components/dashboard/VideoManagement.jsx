@@ -15,6 +15,7 @@ const VideoManagement = () => {
   const [videoFile, setVideoFile] = useState(null);
   const [isAdding, setIsAdding] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const handleEdit = (video) => {
     setEditingId(video.id);
@@ -27,6 +28,7 @@ const VideoManagement = () => {
     });
     setVideoFile(null);
     setIsAdding(false);
+    setUploadProgress(0);
   };
 
   const handleAdd = () => {
@@ -40,12 +42,14 @@ const VideoManagement = () => {
       video_url: ''
     });
     setVideoFile(null);
+    setUploadProgress(0);
   };
 
   const cancelEdit = () => {
     setEditingId(null);
     setIsAdding(false);
     setVideoFile(null);
+    setUploadProgress(0);
   };
 
   const handleChange = (e) => {
@@ -59,23 +63,22 @@ const VideoManagement = () => {
   };
 
   const handleSave = async () => {
-    if (videoFile && videoFile.size > 50 * 1024 * 1024) {
-      alert("This video is larger than 50MB. Your live server (cPanel/Cloudflare) will block this upload and close the connection.\n\nPlease clear the file selection, upload it directly via cPanel File Manager, and paste the URL in the 'OR Paste Video URL' box instead.");
-      return;
-    }
-
     setIsSaving(true);
+    setUploadProgress(0);
     try {
+      let finalVideoUrl = formData.video_url;
+
+      if (videoFile) {
+        finalVideoUrl = await useContent().uploadVideoChunked(videoFile, setUploadProgress);
+      }
+
       const data = new FormData();
       data.append('title', formData.title);
       data.append('description', formData.description);
       data.append('duration', formData.duration);
       data.append('lesson_number', formData.lesson_number);
-      if (formData.video_url) {
-        data.append('video_url', formData.video_url);
-      }
-      if (videoFile) {
-        data.append('video_file', videoFile);
+      if (finalVideoUrl) {
+        data.append('video_url', finalVideoUrl);
       }
 
       if (isAdding) {
@@ -86,6 +89,7 @@ const VideoManagement = () => {
       setEditingId(null);
       setIsAdding(false);
       setVideoFile(null);
+      setUploadProgress(0);
     } catch (err) {
       console.error('Save failed:', err);
       alert('Failed to save video. It might be too large or the server disconnected.');
@@ -142,7 +146,7 @@ const VideoManagement = () => {
                 </span>
               </div>
               <p className="text-xs text-slate-500 mb-4">
-                Tip: 4K UHD or huge videos will drop the connection. For large files, upload via cPanel File Manager and paste the URL below instead.
+                Videos are securely uploaded in 5MB chunks to bypass server limits. You can upload massive files here!
               </p>
               
               <label className="block text-sm mb-1 text-slate-400">OR Paste Video URL (External link or direct server path)</label>
@@ -162,13 +166,21 @@ const VideoManagement = () => {
             <button onClick={cancelEdit} disabled={isSaving} className="flex items-center gap-2 px-4 py-2 bg-slate-700 rounded-lg hover:bg-slate-600 disabled:opacity-50">
               <X className="w-4 h-4" /> Cancel
             </button>
-            <button onClick={handleSave} disabled={isSaving} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 disabled:opacity-50">
-              {isSaving ? (
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
-                <Save className="w-4 h-4" /> 
+            <button onClick={handleSave} disabled={isSaving} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 disabled:opacity-50 relative overflow-hidden group">
+              {isSaving && uploadProgress > 0 && uploadProgress < 100 && (
+                <div className="absolute inset-0 bg-indigo-500 z-0 transition-all duration-300" style={{ width: `${uploadProgress}%` }}></div>
               )}
-              {isSaving ? 'Saving (Uploading...)' : 'Save'}
+              <div className="relative z-10 flex items-center gap-2">
+                {isSaving ? (
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <Save className="w-4 h-4" /> 
+                )}
+                {isSaving 
+                  ? (uploadProgress > 0 && uploadProgress < 100 ? `Uploading ${uploadProgress}%` : 'Saving...') 
+                  : 'Save'
+                }
+              </div>
             </button>
           </div>
         </div>

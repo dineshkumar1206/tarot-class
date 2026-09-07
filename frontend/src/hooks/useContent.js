@@ -102,6 +102,45 @@ export const useContent = () => {
     return res;
   };
 
+  const uploadVideoChunked = async (file, onProgress) => {
+    const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB chunks
+    const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+    const identifier = `${Date.now()}-${file.name}`;
+    let finalUrl = null;
+
+    for (let i = 0; i < totalChunks; i++) {
+      const start = i * CHUNK_SIZE;
+      const end = Math.min(file.size, start + CHUNK_SIZE);
+      const chunk = file.slice(start, end);
+
+      const formData = new FormData();
+      formData.append('chunk', chunk);
+      formData.append('chunkIndex', i);
+      formData.append('totalChunks', totalChunks);
+      formData.append('identifier', identifier);
+      formData.append('fileName', file.name);
+
+      const res = await fetch(`${config.API_BASE_URL}/api/content/upload-chunk`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) throw new Error(`Chunk ${i} upload failed`);
+
+      const data = await res.json();
+      
+      if (onProgress) {
+        onProgress(Math.round(((i + 1) / totalChunks) * 100));
+      }
+
+      if (data.completed) {
+        finalUrl = data.videoUrl;
+      }
+    }
+
+    return finalUrl;
+  };
+
   // Material CRUD
   const addMaterial = async (materialData) => {
     const isFormData = materialData instanceof FormData;
@@ -141,6 +180,7 @@ export const useContent = () => {
     addVideo,
     updateVideo,
     deleteVideo,
+    uploadVideoChunked,
     addMaterial,
     updateMaterial,
     deleteMaterial
