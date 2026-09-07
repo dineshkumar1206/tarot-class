@@ -9,7 +9,8 @@ const VideoManagement = () => {
     title: '',
     description: '',
     duration: '',
-    lesson_number: ''
+    lesson_number: '',
+    video_url: ''
   });
   const [videoFile, setVideoFile] = useState(null);
   const [isAdding, setIsAdding] = useState(false);
@@ -21,7 +22,8 @@ const VideoManagement = () => {
       title: video.title || '',
       description: video.description || '',
       duration: video.duration || '',
-      lesson_number: video.lesson_number || ''
+      lesson_number: video.lesson_number || '',
+      video_url: video.video_url || ''
     });
     setVideoFile(null);
     setIsAdding(false);
@@ -34,7 +36,8 @@ const VideoManagement = () => {
       title: '',
       description: '',
       duration: '',
-      lesson_number: ''
+      lesson_number: '',
+      video_url: ''
     });
     setVideoFile(null);
   };
@@ -63,6 +66,9 @@ const VideoManagement = () => {
       data.append('description', formData.description);
       data.append('duration', formData.duration);
       data.append('lesson_number', formData.lesson_number);
+      if (formData.video_url) {
+        data.append('video_url', formData.video_url);
+      }
       if (videoFile) {
         data.append('video_file', videoFile);
       }
@@ -119,17 +125,23 @@ const VideoManagement = () => {
             </div>
             
             <div className="md:col-span-2">
-              <label className="block text-sm mb-1 text-slate-400">Upload Video File</label>
-              <div className="flex items-center gap-4">
+              <label className="block text-sm mb-1 text-slate-400">Upload Video File <span className="text-xs text-amber-500">(Max ~100MB depending on server limits)</span></label>
+              <div className="flex items-center gap-4 mb-2">
                 <label className="flex items-center gap-2 px-4 py-2 bg-indigo-900/50 border border-indigo-500/50 rounded-lg cursor-pointer hover:bg-indigo-800/50 transition">
                   <Upload className="w-4 h-4 text-indigo-400" />
                   <span className="text-indigo-200">Choose File</span>
                   <input type="file" accept="video/*" onChange={handleFileChange} className="hidden" />
                 </label>
-                <span className="text-sm text-slate-500">
-                  {videoFile ? videoFile.name : (editingId ? 'Keep existing video' : 'No file chosen')}
+                <span className="text-sm text-slate-500 truncate max-w-[200px] md:max-w-xs">
+                  {videoFile ? videoFile.name : (editingId ? 'Keep existing file' : 'No file chosen')}
                 </span>
               </div>
+              <p className="text-xs text-slate-500 mb-4">
+                Tip: 4K UHD or huge videos will drop the connection. For large files, upload via cPanel File Manager and paste the URL below instead.
+              </p>
+              
+              <label className="block text-sm mb-1 text-slate-400">OR Paste Video URL (External link or direct server path)</label>
+              <input type="text" name="video_url" placeholder="https://..." value={formData.video_url} onChange={handleChange} className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white" />
             </div>
 
             <div>
