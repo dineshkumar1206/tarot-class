@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Play, FileText, Download } from 'lucide-react';
 import { useContent } from '../../hooks/useContent';
 import { Link } from 'react-router-dom';
+import PdfModal from '../PdfModal';
 
 const Hero = () => {
   const { videos, pdfs, loading } = useContent();
+  const [selectedPdf, setSelectedPdf] = useState(null);
   
   // Use the first video as the featured video if available
   const featuredVideo = videos && videos.length > 0 ? videos[0] : null;
@@ -83,9 +85,9 @@ const Hero = () => {
             <div className="w-1.5 h-6 bg-[#c19b52] rounded-full"></div>
             <h3 className="font-bold text-slate-900 uppercase tracking-widest text-lg">Study Materials</h3>
           </div>
-          <a href="#pdfs" className="text-xs font-bold text-[#c19b52] hover:text-slate-900 transition-colors tracking-widest uppercase">
+          <Link to="/materials" className="text-xs font-bold text-[#c19b52] hover:text-slate-900 transition-colors tracking-widest uppercase">
             View All <span className="ml-1">&gt;</span>
-          </a>
+          </Link>
         </div>
 
         <div className="flex flex-col gap-2">
@@ -97,6 +99,7 @@ const Hero = () => {
             pdfs.slice(0, 4).map((pdf) => (
               <div 
                 key={pdf.id} 
+                onClick={() => setSelectedPdf(pdf)}
                 className="flex items-center gap-4 p-3 rounded-xl hover:bg-white/60 transition-all border border-transparent hover:border-slate-200 cursor-pointer shadow-sm hover:shadow-md group"
               >
                 <div className="w-20 h-16 rounded-lg overflow-hidden shrink-0 relative bg-slate-100 flex items-center justify-center">
@@ -118,6 +121,12 @@ const Hero = () => {
         
       </div>
       
+      <PdfModal 
+        isOpen={!!selectedPdf} 
+        onClose={() => setSelectedPdf(null)} 
+        pdfUrl={selectedPdf ? (selectedPdf.file_url || selectedPdf.url) : null}
+        title={selectedPdf ? selectedPdf.title : ''}
+      />
     </section>
   );
 };

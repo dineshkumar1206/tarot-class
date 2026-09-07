@@ -15,7 +15,7 @@ const Navbar = () => {
           <div className="flex space-x-6 items-center text-sm font-semibold tracking-wider text-slate-300 uppercase">
             <Link to="/" className="hover:text-[#c19b52] transition-colors">Home</Link>
             <Link to="/videos" className="hover:text-[#c19b52] transition-colors">Pre recorded Video Class</Link>
-            <Link to="/#pdfs" className="hover:text-[#c19b52] transition-colors">PDF study material</Link>
+            <Link to="/materials" className="hover:text-[#c19b52] transition-colors">Study Material</Link>
             <Link 
               to="/dashboard" 
               className="px-4 py-1.5 rounded bg-transparent border border-[#c19b52] hover:bg-[#c19b52]/10 text-[#c19b52] transition-colors flex items-center gap-2 ml-4"

@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import Dashboard from './pages/dashboard/Dashboard';
 import VideoClasses from './pages/VideoClasses';
+import StudyMaterial from './pages/StudyMaterial';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 
@@ -20,6 +21,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/videos" element={<VideoClasses />} />
+          <Route path="/materials" element={<StudyMaterial />} />
           <Route path="/dashboard" element={<Dashboard />} />
         </Routes>
       </BrowserRouter>
