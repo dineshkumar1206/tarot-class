@@ -59,6 +59,11 @@ const VideoManagement = () => {
   };
 
   const handleSave = async () => {
+    if (videoFile && videoFile.size > 50 * 1024 * 1024) {
+      alert("This video is larger than 50MB. Your live server (cPanel/Cloudflare) will block this upload and close the connection.\n\nPlease clear the file selection, upload it directly via cPanel File Manager, and paste the URL in the 'OR Paste Video URL' box instead.");
+      return;
+    }
+
     setIsSaving(true);
     try {
       const data = new FormData();
