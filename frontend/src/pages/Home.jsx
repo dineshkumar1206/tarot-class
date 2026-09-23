@@ -1,6 +1,7 @@
 import React from 'react';
 import Navbar from '../components/Navbar';
 import Hero from '../components/home/Hero';
+import Categories from '../components/home/Categories';
 import PreRecordedCourses from '../components/home/PreRecordedCourses';
 
 const Home = () => {
@@ -9,6 +10,7 @@ const Home = () => {
       <Navbar />
       <main className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)]">
         <Hero />
+        <Categories />
         <PreRecordedCourses />
       </main>
     </div>

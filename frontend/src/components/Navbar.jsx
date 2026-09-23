@@ -14,6 +14,7 @@ const Navbar = () => {
 
           <div className="flex space-x-6 items-center text-sm font-semibold tracking-wider text-slate-300 uppercase">
             <Link to="/" className="hover:text-[#c19b52] transition-colors">Home</Link>
+            <a href="/#syllabus" className="hover:text-[#c19b52] transition-colors">Syllabus</a>
             <Link to="/videos" className="hover:text-[#c19b52] transition-colors">Pre recorded Video Class</Link>
             <Link to="/materials" className="hover:text-[#c19b52] transition-colors">Study Material</Link>
             <Link 
