@@ -10,7 +10,6 @@ const VideoClasses = () => {
 
   return (
     <div className="min-h-screen font-sans selection:bg-[#c19b52]/30">
-      <Navbar />
       
       <main className="max-w-7xl mx-auto py-16 px-4 md:px-12">
         <div data-aos="fade-up">

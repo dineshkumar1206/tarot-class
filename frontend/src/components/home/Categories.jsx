@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { config } from '../../config';
 
 const getIcon = (idx) => {
   const icons = [
@@ -37,25 +38,36 @@ const getIcon = (idx) => {
   return icons[idx % icons.length];
 };
 
-const categories = [
-  { title: "78 Cards Meaning", desc: "Complete meaning of all 78 cards" },
-  { title: "Tarot Symbolic Meaning", desc: "Understand the hidden symbols" },
-  { title: "Numbers Meaning", desc: "The power of numbers in Tarot" },
-  { title: "Colours Meaning", desc: "What colours reveal in cards" },
-  { title: "Zodiac Sign Meaning", desc: "Zodiac connections in Tarot" },
-  { title: "Zodiac Connect with Tarot", desc: "Bridging astrology and Tarot" },
-  { title: "Elements Meaning", desc: "Fire, Water, Air, Earth in Tarot" },
-  { title: "Elements connect with Tarot", desc: "How elements influence readings" },
-  { title: "Time Frames of Suits", desc: "Timing and prediction methods" },
-  { title: "How to Spread", desc: "Learn different spreads" },
-  { title: "Type of Spread", desc: "Choose the right spread for your query" },
-  { title: "How to Cleanse Cards", desc: "Methods to purify your deck" },
-  { title: "How to Awake your intuition", desc: "Tips to develop inner guidance" },
-  { title: "How to connect with Cards", desc: "Build a personal bond with your deck" }
-];
-
 const Categories = () => {
+  const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [videos, setVideos] = useState([]);
+  const [loadingVideos, setLoadingVideos] = useState(false);
+
+  const [playingVideo, setPlayingVideo] = useState(null);
+
+  useEffect(() => {
+    fetch('${config.API_BASE_URL}/api/syllabus/categories')
+      .then(res => res.json())
+      .then(data => setCategories(data))
+      .catch(err => console.error("Error fetching categories:", err));
+  }, []);
+
+  useEffect(() => {
+    if (selectedCategory) {
+      setLoadingVideos(true);
+      fetch(`${config.API_BASE_URL}/api/syllabus/categories/${selectedCategory.id}/videos`)
+        .then(res => res.json())
+        .then(data => {
+          setVideos(data);
+          setLoadingVideos(false);
+        })
+        .catch(err => {
+          console.error("Error fetching videos:", err);
+          setLoadingVideos(false);
+        });
+    }
+  }, [selectedCategory]);
 
   return (
     <>
@@ -73,7 +85,7 @@ const Categories = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-5">
             {categories.map((cat, idx) => (
               <div 
-                key={idx} 
+                key={cat.id || idx} 
                 className="bg-white rounded-xl p-4 md:p-5 border border-slate-100 hover:border-[#B89355]/30 transition-all flex flex-col items-center text-center shadow-md hover:shadow-xl hover:-translate-y-1"
                 data-aos="fade-up"
                 data-aos-delay={(idx % 5) * 50}
@@ -81,11 +93,11 @@ const Categories = () => {
                 <div className="mb-3 flex justify-center w-full">
                   {getIcon(idx)}
                 </div>
-                <h3 className="font-bold text-[#0C3229] text-lg mb-2 font-serif">{cat.title}</h3>
-                <p className="text-[#475467] text-xs md:text-sm mb-5 flex-1 leading-relaxed font-medium">{cat.desc}</p>
+                <h3 className="font-bold text-[#0C3229] text-lg mb-2 font-serif">{cat.name}</h3>
+                <p className="text-[#475467] text-xs md:text-sm mb-5 flex-1 leading-relaxed font-medium">{cat.description}</p>
                 
                 <button 
-                  onClick={() => setSelectedCategory(cat.title)}
+                  onClick={() => setSelectedCategory(cat)}
                   className="w-[90%] py-2 px-4 rounded-md bg-[#B89355] hover:bg-[#9c7d48] text-white font-semibold transition-colors shadow-sm text-xs uppercase tracking-wide"
                 >
                   View Course
@@ -96,7 +108,7 @@ const Categories = () => {
         </div>
       </section>
 
-      {/* Video List Popup Modal (Moved outside section to prevent clipping from AOS transform) */}
+      {/* Video List Popup Modal */}
       {selectedCategory && (
         <div 
           className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 md:p-12 bg-white/80 backdrop-blur-md overflow-y-auto" 
@@ -117,49 +129,106 @@ const Categories = () => {
             </button>
 
             <h3 className="text-2xl md:text-3xl font-bold font-serif text-[#0C3229] mb-8 border-b border-slate-100 pb-4 pr-12">
-              Category: <span className="text-[#B89355]">{selectedCategory}</span> - Pre Recorded Classes
+              Category: <span className="text-[#B89355]">{selectedCategory.name}</span> - Pre Recorded Classes
             </h3>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[1, 2, 3].map((v) => (
-                <div key={v} className="bg-white rounded-xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-md transition-all flex flex-col">
-                  {/* Video Thumbnail Placeholder */}
-                  <div className="relative bg-[#0C3229] h-48 flex items-center justify-center">
-                    <img src={`/images/hero-1.webp`} alt="Thumbnail placeholder" className="opacity-40 h-full w-full object-cover" />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                       <span className="text-white/80 font-bold tracking-widest uppercase">Video {v}</span>
+            {loadingVideos ? (
+              <div className="text-center py-10">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0C3229] mx-auto"></div>
+                <p className="mt-4 text-slate-500">Loading classes...</p>
+              </div>
+            ) : videos.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {videos.map((video, idx) => (
+                  <div key={video.id || idx} className="bg-white rounded-xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-md transition-all flex flex-col">
+                    <div 
+                      className="relative bg-black h-48 flex items-center justify-center cursor-pointer group overflow-hidden"
+                      onClick={() => setPlayingVideo(video)}
+                    >
+                      {video.thumbnail_url ? (
+                        <img 
+                          src={`${config.API_BASE_URL}${video.thumbnail_url}`} 
+                          alt={video.title} 
+                          className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                        />
+                      ) : (
+                        <video 
+                          src={`${config.API_BASE_URL}${video.video_url}#t=0.1`} 
+                          className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-70"
+                          preload="metadata"
+                          muted
+                          playsInline
+                        />
+                      )}
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="bg-black/70 rounded-full p-4 shadow-xl backdrop-blur-sm group-hover:bg-black group-hover:scale-110 transition-all border border-white/10">
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+                        </div>
+                      </div>
                     </div>
-                    {/* Play Icon */}
-                    <div className="absolute bottom-3 right-3 bg-black/70 rounded-full p-2.5 shadow-lg backdrop-blur-sm cursor-pointer hover:bg-black transition-colors">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+                    
+                    <div className="p-5 flex flex-col flex-1">
+                      <h4 className="font-bold text-[#1D2939] text-lg mb-1 leading-tight line-clamp-2">
+                        {video.title}
+                      </h4>
+                      <p className="text-sm text-[#475467] font-medium mb-5">
+                        {video.duration || 'N/A'} min
+                      </p>
+                      <div className="mt-auto">
+                        <button 
+                          onClick={() => setPlayingVideo(video)}
+                          className="w-full py-2.5 rounded-md bg-[#B89355] hover:bg-[#9c7d48] text-white font-bold transition-colors shadow-sm"
+                        >
+                          Play Now
+                        </button>
+                      </div>
                     </div>
                   </div>
-                  
-                  {/* Video Info */}
-                  <div className="p-5 flex flex-col flex-1">
-                    <h4 className="font-bold text-[#1D2939] text-lg mb-1 leading-tight line-clamp-2">
-                      The Major Arcana Deep Meanings - Part {v}
-                    </h4>
-                    <p className="text-sm text-[#475467] font-medium mb-5">
-                      {45 + (v * 5)} min
-                    </p>
-                    <div className="mt-auto">
-                      <button className="w-full py-2.5 rounded-md bg-[#B89355] hover:bg-[#9c7d48] text-white font-bold transition-colors shadow-sm">
-                        Play Now
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-10">
+                <p className="text-slate-500 text-lg">No pre-recorded classes available for this category yet.</p>
+              </div>
+            )}
             
             <div className="mt-10 text-center">
               <Link 
-                to="/videos" 
+                to={`/syllabus/${selectedCategory.slug}`} 
+                onClick={() => setSelectedCategory(null)}
                 className="inline-block py-3 px-10 rounded-md bg-[#0C3229] hover:bg-[#08201a] text-white font-bold shadow-lg transition-transform hover:-translate-y-0.5 tracking-wide"
               >
                 View More Classes
               </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Video Player Modal */}
+      {playingVideo && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm" onClick={() => setPlayingVideo(null)}>
+          <div className="w-full max-w-5xl bg-black rounded-2xl overflow-hidden relative shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/80 to-transparent z-10 flex justify-between items-start pointer-events-none">
+              <h3 className="text-white font-bold text-xl drop-shadow-md pr-10">{playingVideo.title}</h3>
+            </div>
+            <button 
+              onClick={() => setPlayingVideo(null)}
+              className="absolute top-4 right-4 text-white/80 hover:text-white bg-black/50 hover:bg-[#E41E5D] p-2 rounded-full transition-all z-20"
+              aria-label="Close video"
+            >
+              <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+            <div className="aspect-video w-full bg-black flex items-center justify-center">
+              <video 
+                src={`${config.API_BASE_URL}${playingVideo.video_url}`} 
+                controls 
+                autoPlay 
+                className="w-full h-full"
+                controlsList="nodownload"
+              >
+                Your browser does not support the video tag.
+              </video>
             </div>
           </div>
         </div>

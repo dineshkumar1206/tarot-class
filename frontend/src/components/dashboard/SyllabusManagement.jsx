@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, Trash2, Edit2, Play, Image as ImageIcon } from 'lucide-react';
+import { Upload, Trash2, Edit2, Play, Image as ImageIcon, Video } from 'lucide-react';
+import { config } from '../../config';
 
 const SyllabusManagement = () => {
   const [categories, setCategories] = useState([]);
@@ -11,11 +12,19 @@ const SyllabusManagement = () => {
   const [duration, setDuration] = useState('');
   const [videoFile, setVideoFile] = useState(null);
   const [thumbnailFile, setThumbnailFile] = useState(null);
+  const [editVideoId, setEditVideoId] = useState(null);
   
+  const [showUploadModal, setShowUploadModal] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const [images, setImages] = useState([]);
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [imageTitle, setImageTitle] = useState('');
+  const [imageFile, setImageFile] = useState(null);
+  const [imageLoading, setImageLoading] = useState(false);
+
   useEffect(() => {
-    fetch('http://localhost:5000/api/syllabus/categories')
+    fetch('${config.API_BASE_URL}/api/syllabus/categories')
       .then(res => res.json())
       .then(data => {
         setCategories(data);
@@ -27,19 +36,28 @@ const SyllabusManagement = () => {
   useEffect(() => {
     if (selectedCategory) {
       fetchVideos();
+      fetchImages();
     }
   }, [selectedCategory]);
 
   const fetchVideos = () => {
-    fetch(`http://localhost:5000/api/syllabus/categories/${selectedCategory.id}/videos`)
+    fetch(`${config.API_BASE_URL}/api/syllabus/categories/${selectedCategory.id}/videos`)
       .then(res => res.json())
       .then(data => setVideos(data))
       .catch(err => console.error(err));
   };
 
+  const fetchImages = () => {
+    fetch(`${config.API_BASE_URL}/api/syllabus/categories/${selectedCategory.id}/images`)
+      .then(res => res.json())
+      .then(data => setImages(data))
+      .catch(err => console.error(err));
+  };
+
   const handleUpload = async (e) => {
     e.preventDefault();
-    if (!videoFile || !title) return alert("Title and Video file are required");
+    if (!editVideoId && !videoFile) return alert("Video file is required");
+    if (!title) return alert("Title is required");
     
     setLoading(true);
     const formData = new FormData();
@@ -48,14 +66,17 @@ const SyllabusManagement = () => {
     formData.append('duration', duration);
     formData.append('category_id', selectedCategory.id);
     formData.append('categorySlug', selectedCategory.slug);
-    formData.append('video', videoFile);
-    if (thumbnailFile) {
-      formData.append('thumbnail', thumbnailFile);
-    }
+    if (videoFile) formData.append('video', videoFile);
+    if (thumbnailFile) formData.append('thumbnail', thumbnailFile);
 
     try {
-      const res = await fetch('http://localhost:5000/api/syllabus/videos', {
-        method: 'POST',
+      const url = editVideoId 
+        ? `${config.API_BASE_URL}/api/syllabus/videos/${editVideoId}` 
+        : '${config.API_BASE_URL}/api/syllabus/videos';
+      const method = editVideoId ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
         body: formData
       });
       if (res.ok) {
@@ -64,6 +85,8 @@ const SyllabusManagement = () => {
         setDuration('');
         setVideoFile(null);
         setThumbnailFile(null);
+        setEditVideoId(null);
+        setShowUploadModal(false);
         fetchVideos();
       } else {
         alert("Upload failed");
@@ -74,11 +97,60 @@ const SyllabusManagement = () => {
     setLoading(false);
   };
 
+  const handleEditClick = (video) => {
+    setTitle(video.title);
+    setDescription(video.description || '');
+    setDuration(video.duration || '');
+    setEditVideoId(video.id);
+    setShowUploadModal(true);
+  };
+
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this video?")) {
       try {
-        const res = await fetch(`http://localhost:5000/api/syllabus/videos/${id}`, { method: 'DELETE' });
+        const res = await fetch(`${config.API_BASE_URL}/api/syllabus/videos/${id}`, { method: 'DELETE' });
         if (res.ok) fetchVideos();
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  };
+
+  const handleImageUpload = async (e) => {
+    e.preventDefault();
+    if (!imageFile) return alert("Image file is required");
+    
+    setImageLoading(true);
+    const formData = new FormData();
+    formData.append('title', imageTitle);
+    formData.append('category_id', selectedCategory.id);
+    formData.append('categorySlug', selectedCategory.slug);
+    formData.append('image', imageFile);
+
+    try {
+      const res = await fetch('${config.API_BASE_URL}/api/syllabus/images', {
+        method: 'POST',
+        body: formData
+      });
+      if (res.ok) {
+        setImageTitle('');
+        setImageFile(null);
+        setShowImageModal(false);
+        fetchImages();
+      } else {
+        alert("Upload failed");
+      }
+    } catch (err) {
+      console.error(err);
+    }
+    setImageLoading(false);
+  };
+
+  const handleImageDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this image?")) {
+      try {
+        const res = await fetch(`${config.API_BASE_URL}/api/syllabus/images/${id}`, { method: 'DELETE' });
+        if (res.ok) fetchImages();
       } catch (err) {
         console.error(err);
       }
@@ -109,52 +181,37 @@ const SyllabusManagement = () => {
       <div className="flex-1 flex flex-col gap-6">
         {selectedCategory && (
           <>
-            <div className="bg-slate-900 border border-indigo-900/50 rounded-2xl p-8 shadow-xl">
-              <h3 className="text-2xl font-bold text-white mb-2">Upload to: <span className="text-amber-500">{selectedCategory.name}</span></h3>
-              <p className="text-slate-400 text-sm mb-8">{selectedCategory.description}</p>
-              
-              <form onSubmit={handleUpload} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="col-span-1 md:col-span-2">
-                  <label className="block text-slate-300 text-sm font-bold mb-2">Video Title *</label>
-                  <input type="text" value={title} onChange={e => setTitle(e.target.value)} required className="w-full bg-slate-950 text-white rounded-xl p-4 border border-indigo-900/50 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none transition-colors" placeholder="e.g. The Magician Card Meaning" />
-                </div>
-                <div className="col-span-1 md:col-span-2">
-                  <label className="block text-slate-300 text-sm font-bold mb-2">Description</label>
-                  <textarea value={description} onChange={e => setDescription(e.target.value)} rows="3" className="w-full bg-slate-950 text-white rounded-xl p-4 border border-indigo-900/50 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none transition-colors" placeholder="Brief description of the video content..."></textarea>
-                </div>
-                <div className="col-span-1 md:col-span-2">
-                  <label className="block text-slate-300 text-sm font-bold mb-2">Duration (optional)</label>
-                  <input type="text" value={duration} onChange={e => setDuration(e.target.value)} className="w-full bg-slate-950 text-white rounded-xl p-4 border border-indigo-900/50 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none transition-colors" placeholder="e.g. 15 min" />
-                </div>
-                
-                <div className="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 mt-2">
-                  <div className="border-2 border-dashed border-indigo-900/50 hover:border-amber-500/50 transition-colors rounded-2xl p-6 bg-slate-950/50 flex flex-col items-center justify-center text-center group">
-                    <Play className="w-10 h-10 text-amber-500 mb-3 group-hover:scale-110 transition-transform" />
-                    <label className="cursor-pointer text-amber-400 hover:text-amber-300 font-bold text-sm px-4 py-2 bg-amber-500/10 rounded-lg">
-                      Select Video File *
-                      <input type="file" accept="video/*" className="hidden" onChange={e => setVideoFile(e.target.files[0])} required />
-                    </label>
-                    {videoFile && <span className="text-xs text-slate-400 mt-4 truncate max-w-full px-2 font-mono bg-slate-900 p-2 rounded">{videoFile.name}</span>}
-                  </div>
-                  
-                  <div className="border-2 border-dashed border-indigo-900/50 hover:border-indigo-500/50 transition-colors rounded-2xl p-6 bg-slate-950/50 flex flex-col items-center justify-center text-center group">
-                    <ImageIcon className="w-10 h-10 text-indigo-400 mb-3 group-hover:scale-110 transition-transform" />
-                    <label className="cursor-pointer text-indigo-400 hover:text-indigo-300 font-bold text-sm px-4 py-2 bg-indigo-500/10 rounded-lg">
-                      Select Thumbnail (Optional)
-                      <input type="file" accept="image/*" className="hidden" onChange={e => setThumbnailFile(e.target.files[0])} />
-                    </label>
-                    {thumbnailFile && <span className="text-xs text-slate-400 mt-4 truncate max-w-full px-2 font-mono bg-slate-900 p-2 rounded">{thumbnailFile.name}</span>}
-                  </div>
-                </div>
-                
-                <div className="col-span-1 md:col-span-2 flex justify-end mt-6">
-                  <button type="submit" disabled={loading} className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-4 px-10 rounded-xl flex items-center gap-3 transition-all shadow-lg hover:shadow-amber-500/25 disabled:opacity-50 disabled:hover:scale-100 hover:-translate-y-1">
-                    {loading ? 'Uploading & Saving...' : <><Upload className="w-5 h-5" /> Upload Video to Syllabus</>}
-                  </button>
-                </div>
-              </form>
+            {/* Header and Add Button */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-900 border border-indigo-900/50 rounded-2xl p-6 shadow-xl gap-4">
+              <div>
+                <h3 className="text-2xl font-bold text-white mb-1"><span className="text-amber-500">{selectedCategory.name}</span></h3>
+                <p className="text-slate-400 text-sm">{selectedCategory.description}</p>
+              </div>
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => setShowImageModal(true)}
+                  className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-6 rounded-xl flex items-center gap-2 transition-all shadow-lg hover:-translate-y-1"
+                >
+                  <ImageIcon className="w-5 h-5" /> Add Images
+                </button>
+                <button 
+                  onClick={() => {
+                    setTitle('');
+                    setDescription('');
+                    setDuration('');
+                    setVideoFile(null);
+                    setThumbnailFile(null);
+                    setEditVideoId(null);
+                    setShowUploadModal(true);
+                  }}
+                  className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3 px-6 rounded-xl flex items-center gap-2 transition-all shadow-lg hover:-translate-y-1"
+                >
+                  <Upload className="w-5 h-5" /> Add New Video
+                </button>
+              </div>
             </div>
 
+            {/* Video Grid */}
             <div className="bg-slate-900 border border-indigo-900/50 rounded-2xl p-8 flex-1 shadow-xl">
               <h3 className="text-2xl font-bold text-white mb-8 border-b border-indigo-900/50 pb-4">Uploaded Videos ({videos.length})</h3>
               
@@ -164,39 +221,187 @@ const SyllabusManagement = () => {
                   No videos uploaded for this category yet.
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {videos.map(video => (
-                    <div key={video.id} className="flex flex-col md:flex-row items-center gap-6 p-4 bg-slate-950/50 rounded-xl border border-indigo-900/30 hover:border-indigo-500/30 transition-colors">
-                      <div className="w-full md:w-48 h-28 bg-black rounded-xl overflow-hidden flex-shrink-0 relative group">
+                    <div key={video.id} className="bg-slate-950 border border-indigo-900/50 rounded-2xl overflow-hidden flex flex-col group hover:border-indigo-500/50 transition-colors shadow-lg">
+                      {/* Thumbnail */}
+                      <div className="relative h-48 bg-black flex-shrink-0 w-full overflow-hidden">
                         {video.thumbnail_url ? (
-                           <img src={`http://localhost:5000${video.thumbnail_url}`} alt="Thumbnail" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                           <img src={`${config.API_BASE_URL}${video.thumbnail_url}`} alt="Thumbnail" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                         ) : (
-                           <video src={`http://localhost:5000${video.video_url}`} className="w-full h-full object-cover opacity-50"></video>
+                           <video src={`${config.API_BASE_URL}${video.video_url}`} className="w-full h-full object-cover opacity-50"></video>
                         )}
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/40 transition-colors">
-                          <Play className="w-10 h-10 text-white/90 drop-shadow-lg" />
+                        <div className="absolute bottom-3 right-3 bg-black/70 rounded-full p-2.5 backdrop-blur-sm">
+                           <Play className="w-5 h-5 text-white" />
                         </div>
                       </div>
                       
-                      <div className="flex-1 w-full py-2">
-                        <h4 className="text-xl font-bold text-white mb-1">{video.title}</h4>
-                        <p className="text-sm text-slate-400 line-clamp-2 mb-3 leading-relaxed">{video.description}</p>
-                        <span className="inline-block text-xs text-amber-500 font-bold bg-amber-500/10 px-3 py-1.5 rounded-lg border border-amber-500/20">{video.duration || 'Duration N/A'}</span>
-                      </div>
-                      
-                      <div className="flex gap-3 w-full md:w-auto justify-end px-4">
-                        <button className="p-3 text-slate-400 hover:text-indigo-400 hover:bg-indigo-400/10 rounded-xl transition-colors" title="Edit">
-                          <Edit2 className="w-5 h-5" />
-                        </button>
-                        <button onClick={() => handleDelete(video.id)} className="p-3 text-slate-400 hover:text-red-400 hover:bg-red-400/10 rounded-xl transition-colors" title="Delete">
-                          <Trash2 className="w-5 h-5" />
-                        </button>
+                      {/* Content */}
+                      <div className="p-5 flex flex-col flex-1">
+                        <h4 className="text-lg font-bold text-white mb-2 leading-tight">{video.title}</h4>
+                        <p className="text-sm text-slate-400 line-clamp-2 mb-4 leading-relaxed flex-1">{video.description}</p>
+                        
+                        <div className="mt-auto flex items-center justify-between border-t border-indigo-900/50 pt-4">
+                          <span className="text-sm font-medium text-slate-300">{video.duration || 'N/A'}</span>
+                          <div className="flex gap-2">
+                            <button onClick={() => handleEditClick(video)} className="p-2 bg-slate-800 hover:bg-indigo-500/20 text-indigo-400 rounded-lg transition-colors" title="Edit">
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                            <button onClick={() => handleDelete(video.id)} className="p-2 bg-slate-800 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors" title="Delete">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
               )}
             </div>
+            {/* Images Grid */}
+            <div className="bg-slate-900 border border-indigo-900/50 rounded-2xl p-8 flex-1 shadow-xl">
+              <h3 className="text-2xl font-bold text-white mb-8 border-b border-indigo-900/50 pb-4">Uploaded Images ({images.length})</h3>
+              
+              {images.length === 0 ? (
+                <div className="text-slate-500 text-center py-16 bg-slate-950/50 rounded-xl border border-dashed border-indigo-900/30">
+                  <ImageIcon className="w-12 h-12 mx-auto text-slate-700 mb-4" />
+                  No images uploaded for this category yet.
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                  {images.map(image => (
+                    <div key={image.id} className="bg-slate-950 border border-indigo-900/50 rounded-2xl overflow-hidden flex flex-col group hover:border-indigo-500/50 transition-colors shadow-lg">
+                      <div className="relative h-48 bg-black flex-shrink-0 w-full overflow-hidden">
+                        <img src={`${config.API_BASE_URL}${image.image_url}`} alt={image.title || "Category image"} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      </div>
+                      
+                      <div className="p-4 flex flex-col flex-1">
+                        <h4 className="text-md font-bold text-white mb-2 leading-tight truncate">{image.title || 'Untitled Image'}</h4>
+                        
+                        <div className="mt-auto flex items-center justify-end border-t border-indigo-900/50 pt-3">
+                          <button onClick={() => handleImageDelete(image.id)} className="p-2 bg-slate-800 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors" title="Delete">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            {/* Upload Modal */}
+            {showUploadModal && (
+              <div 
+                className="fixed inset-0 z-[100] flex items-start sm:items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto"
+                onClick={() => setShowUploadModal(false)}
+              >
+                <div 
+                  className="bg-slate-900 border border-indigo-900/50 rounded-2xl p-6 shadow-2xl w-full max-w-3xl relative mt-10 sm:mt-0"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button 
+                    onClick={() => setShowUploadModal(false)}
+                    className="absolute top-4 right-4 text-slate-400 hover:text-[#E41E5D] bg-slate-800 hover:bg-slate-700 p-2 rounded-full transition-colors z-10"
+                    aria-label="Close modal"
+                  >
+                    <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                  </button>
+                  
+                  <h3 className="text-xl font-bold text-white mb-6 pr-10">{editVideoId ? 'Edit Video in' : 'Upload to'}: <span className="text-amber-500">{selectedCategory.name}</span></h3>
+                  
+                  <form onSubmit={handleUpload} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="col-span-1 md:col-span-2">
+                      <label className="block text-slate-300 text-sm font-bold mb-1.5">Video Title *</label>
+                      <input type="text" value={title} onChange={e => setTitle(e.target.value)} required className="w-full bg-slate-950 text-white rounded-xl p-3 border border-indigo-900/50 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none transition-colors" placeholder="e.g. The Magician Card Meaning" />
+                    </div>
+                    <div className="col-span-1 md:col-span-2">
+                      <label className="block text-slate-300 text-sm font-bold mb-1.5">Description</label>
+                      <textarea value={description} onChange={e => setDescription(e.target.value)} rows="2" className="w-full bg-slate-950 text-white rounded-xl p-3 border border-indigo-900/50 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none transition-colors" placeholder="Brief description of the video content..."></textarea>
+                    </div>
+                    <div className="col-span-1 md:col-span-2">
+                      <label className="block text-slate-300 text-sm font-bold mb-1.5">Duration (optional)</label>
+                      <input type="text" value={duration} onChange={e => setDuration(e.target.value)} className="w-full bg-slate-950 text-white rounded-xl p-3 border border-indigo-900/50 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none transition-colors" placeholder="e.g. 15 min" />
+                    </div>
+                    
+                    <div className="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 mt-1">
+                      <div className="border-2 border-dashed border-indigo-900/50 hover:border-amber-500/50 transition-colors rounded-xl p-4 bg-slate-950/50 flex flex-col items-center justify-center text-center group">
+                        <Play className="w-8 h-8 text-amber-500 mb-2 group-hover:scale-110 transition-transform" />
+                        <label className="cursor-pointer text-amber-400 hover:text-amber-300 font-bold text-sm px-4 py-2 bg-amber-500/10 rounded-lg">
+                          {editVideoId ? 'Update Video File (Optional)' : 'Select Video File *'}
+                          <input type="file" accept="video/*" className="hidden" onChange={e => setVideoFile(e.target.files[0])} />
+                        </label>
+                        {videoFile && <span className="text-xs text-slate-400 mt-3 truncate max-w-full px-2 font-mono bg-slate-900 p-1.5 rounded">{videoFile.name}</span>}
+                      </div>
+                      
+                      <div className="border-2 border-dashed border-indigo-900/50 hover:border-indigo-500/50 transition-colors rounded-xl p-4 bg-slate-950/50 flex flex-col items-center justify-center text-center group">
+                        <ImageIcon className="w-8 h-8 text-indigo-400 mb-2 group-hover:scale-110 transition-transform" />
+                        <label className="cursor-pointer text-indigo-400 hover:text-indigo-300 font-bold text-sm px-4 py-2 bg-indigo-500/10 rounded-lg">
+                          Select Thumbnail (Optional)
+                          <input type="file" accept="image/*" className="hidden" onChange={e => setThumbnailFile(e.target.files[0])} />
+                        </label>
+                        {thumbnailFile && <span className="text-xs text-slate-400 mt-3 truncate max-w-full px-2 font-mono bg-slate-900 p-1.5 rounded">{thumbnailFile.name}</span>}
+                      </div>
+                    </div>
+                    
+                    <div className="col-span-1 md:col-span-2 flex justify-end mt-4 gap-3 border-t border-indigo-900/50 pt-4">
+                      <button type="button" onClick={() => setShowUploadModal(false)} className="text-slate-400 hover:text-[#E41E5D] font-bold py-2.5 px-6 transition-colors">
+                        Cancel
+                      </button>
+                      <button type="submit" disabled={loading} className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-2.5 px-8 rounded-xl flex items-center gap-2 transition-all shadow-lg hover:shadow-amber-500/25 disabled:opacity-50 disabled:hover:scale-100 hover:-translate-y-1">
+                        {loading ? (editVideoId ? 'Updating...' : 'Uploading...') : <><Upload className="w-5 h-5" /> {editVideoId ? 'Update Video' : 'Upload Video'}</>}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+            {/* Image Upload Modal */}
+            {showImageModal && (
+              <div 
+                className="fixed inset-0 z-[100] flex items-start sm:items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto"
+                onClick={() => setShowImageModal(false)}
+              >
+                <div 
+                  className="bg-slate-900 border border-indigo-900/50 rounded-2xl p-6 shadow-2xl w-full max-w-xl relative mt-10 sm:mt-0"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button 
+                    onClick={() => setShowImageModal(false)}
+                    className="absolute top-4 right-4 text-slate-400 hover:text-[#E41E5D] bg-slate-800 hover:bg-slate-700 p-2 rounded-full transition-colors z-10"
+                    aria-label="Close modal"
+                  >
+                    <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                  </button>
+                  
+                  <h3 className="text-xl font-bold text-white mb-6 pr-10">Add Image to: <span className="text-indigo-400">{selectedCategory.name}</span></h3>
+                  
+                  <form onSubmit={handleImageUpload} className="grid grid-cols-1 gap-4">
+                    <div>
+                      <label className="block text-slate-300 text-sm font-bold mb-1.5">Image Title (Optional)</label>
+                      <input type="text" value={imageTitle} onChange={e => setImageTitle(e.target.value)} className="w-full bg-slate-950 text-white rounded-xl p-3 border border-indigo-900/50 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none transition-colors" placeholder="e.g. Card Spread Diagram" />
+                    </div>
+                    
+                    <div className="border-2 border-dashed border-indigo-900/50 hover:border-indigo-500/50 transition-colors rounded-xl p-6 bg-slate-950/50 flex flex-col items-center justify-center text-center group mt-2">
+                      <ImageIcon className="w-10 h-10 text-indigo-400 mb-3 group-hover:scale-110 transition-transform" />
+                      <label className="cursor-pointer text-indigo-400 hover:text-indigo-300 font-bold text-sm px-4 py-2 bg-indigo-500/10 rounded-lg">
+                        Select Image File *
+                        <input type="file" accept="image/*" className="hidden" onChange={e => setImageFile(e.target.files[0])} required />
+                      </label>
+                      {imageFile && <span className="text-xs text-slate-400 mt-3 truncate max-w-full px-2 font-mono bg-slate-900 p-1.5 rounded">{imageFile.name}</span>}
+                    </div>
+                    
+                    <div className="flex justify-end mt-4 gap-3 border-t border-indigo-900/50 pt-4">
+                      <button type="button" onClick={() => setShowImageModal(false)} className="text-slate-400 hover:text-[#E41E5D] font-bold py-2.5 px-6 transition-colors">
+                        Cancel
+                      </button>
+                      <button type="submit" disabled={imageLoading} className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 px-8 rounded-xl flex items-center gap-2 transition-all shadow-lg hover:shadow-indigo-500/25 disabled:opacity-50 disabled:hover:scale-100 hover:-translate-y-1">
+                        {imageLoading ? 'Uploading...' : <><Upload className="w-5 h-5" /> Upload Image</>}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
           </>
         )}
       </div>

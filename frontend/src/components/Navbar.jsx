@@ -1,32 +1,33 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { config } from '../config';
 
 const Navbar = () => {
   const location = useLocation();
+  const [syllabusCategories, setSyllabusCategories] = useState([]);
+  
+  useEffect(() => {
+    fetch('${config.API_BASE_URL}/api/syllabus/categories')
+      .then(res => res.json())
+      .then(data => setSyllabusCategories(data))
+      .catch(err => console.error("Error fetching categories for navbar:", err));
+  }, []);
+
+  if (location.pathname.startsWith('/dashboard')) {
+    return null;
+  }
   
   const navLinks = [
     { name: 'Home', path: '/' },
     { 
       name: 'Syllabus', 
       path: '#',
-      submenus: [
-        { name: "78 Cards Meaning", path: "/syllabus/cards-meaning" },
-        { name: "Tarot Symbolic Meaning", path: "/syllabus/symbolic-meaning" },
-        { name: "Numbers Meaning", path: "/syllabus/numbers-meaning" },
-        { name: "Colours Meaning", path: "/syllabus/colours-meaning" },
-        { name: "Zodiac Sign Meaning", path: "/syllabus/zodiac-sign-meaning" },
-        { name: "Zodiac Connect with Tarot", path: "/syllabus/zodiac-connect" },
-        { name: "Elements Meaning", path: "/syllabus/elements-meaning" },
-        { name: "Elements connect with Tarot", path: "/syllabus/elements-connect" },
-        { name: "Time Frames of Suits", path: "/syllabus/time-frames" },
-        { name: "How to Spread", path: "/syllabus/how-to-spread" },
-        { name: "Type of Spread", path: "/syllabus/type-of-spread" },
-        { name: "How to Cleanse Cards", path: "/syllabus/how-to-cleanse" },
-        { name: "How to Awake your intuition", path: "/syllabus/awaken-intuition" },
-        { name: "How to connect with Cards", path: "/syllabus/connect-with-cards" }
-      ]
+      submenus: syllabusCategories.map(cat => ({
+        name: cat.name,
+        path: `/syllabus/${cat.slug}`
+      }))
     },
-    { name: 'Courses', path: '/videos' },
+    // { name: 'Courses', path: '/videos' },
     { name: 'My Dashboard', path: '/dashboard' }
   ];
 
