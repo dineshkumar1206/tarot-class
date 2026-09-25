@@ -1,7 +1,7 @@
 import React from 'react';
 import Hero from '../components/home/Hero';
 import Categories from '../components/home/Categories';
-import PreRecordedCourses from '../components/home/PreRecordedCourses';
+import Testimonials from '../components/home/Testimonials';
 
 const Home = () => {
   return (
@@ -12,7 +12,7 @@ const Home = () => {
       <main className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)]">
         <Hero />
         <Categories />
-        <PreRecordedCourses />
+        <Testimonials />
       </main>
     </div>
   );
