@@ -17,7 +17,7 @@ const SyllabusCategoryPage = () => {
       setLoading(true);
       try {
         // Fetch categories to find the one matching the slug
-        const catRes = await fetch('${config.API_BASE_URL}/api/syllabus/categories');
+        const catRes = await fetch(`${config.API_BASE_URL}/api/syllabus/categories`);
         if (!catRes.ok) throw new Error('Failed to fetch categories');
         const categories = await catRes.json();
         

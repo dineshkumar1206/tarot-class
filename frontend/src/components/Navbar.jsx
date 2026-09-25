@@ -7,7 +7,7 @@ const Navbar = () => {
   const [syllabusCategories, setSyllabusCategories] = useState([]);
   
   useEffect(() => {
-    fetch('${config.API_BASE_URL}/api/syllabus/categories')
+    fetch(`${config.API_BASE_URL}/api/syllabus/categories`)
       .then(res => res.json())
       .then(data => setSyllabusCategories(data))
       .catch(err => console.error("Error fetching categories for navbar:", err));

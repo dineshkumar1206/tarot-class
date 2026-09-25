@@ -24,7 +24,7 @@ const SyllabusManagement = () => {
   const [imageLoading, setImageLoading] = useState(false);
 
   useEffect(() => {
-    fetch('${config.API_BASE_URL}/api/syllabus/categories')
+    fetch(`${config.API_BASE_URL}/api/syllabus/categories`)
       .then(res => res.json())
       .then(data => {
         setCategories(data);
@@ -72,7 +72,7 @@ const SyllabusManagement = () => {
     try {
       const url = editVideoId 
         ? `${config.API_BASE_URL}/api/syllabus/videos/${editVideoId}` 
-        : '${config.API_BASE_URL}/api/syllabus/videos';
+        : `${config.API_BASE_URL}/api/syllabus/videos`;
       const method = editVideoId ? 'PUT' : 'POST';
 
       const res = await fetch(url, {
@@ -128,7 +128,7 @@ const SyllabusManagement = () => {
     formData.append('image', imageFile);
 
     try {
-      const res = await fetch('${config.API_BASE_URL}/api/syllabus/images', {
+      const res = await fetch(`${config.API_BASE_URL}/api/syllabus/images`, {
         method: 'POST',
         body: formData
       });
