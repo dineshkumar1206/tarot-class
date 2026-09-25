@@ -109,8 +109,8 @@ const Testimonials = () => {
             <Link to="#" className="text-[#1D2939] font-bold hover:text-[#B89355] transition-colors">Contact</Link>
           </div>
           
-          <p className="text-center text-xs text-[#475467] font-medium">
-            Copyright © 2023 All rights reserved.
+          <p className="text-center text-sm text-[#475467] font-medium">
+            Design by <a href="https://amigowebster.com/" target="_blank" rel="noopener noreferrer" className="text-[#B89355] hover:text-[#9c7d48] font-bold hover:underline transition-colors">AmigoWebster</a>
           </p>
         </div>
 
