@@ -1,132 +1,107 @@
 import React, { useState } from 'react';
-import { Play, FileText, Download } from 'lucide-react';
-import { useContent } from '../../hooks/useContent';
 import { Link } from 'react-router-dom';
-import PdfModal from '../PdfModal';
 
 const Hero = () => {
-  const { videos, pdfs, loading } = useContent();
-  const [selectedPdf, setSelectedPdf] = useState(null);
-  
-  // Use the first video as the featured video if available
-  const featuredVideo = videos && videos.length > 0 ? videos[0] : null;
+  const [isZoomed, setIsZoomed] = useState(false);
 
   return (
-    <section className="relative w-full py-12 px-4 md:px-12 max-w-[1400px] mx-auto flex flex-col lg:flex-row gap-8 lg:gap-12 min-h-[80vh] items-start">
-      
-      {/* Left Side: Featured Class Video */}
-      <div className="flex-1 w-full lg:w-2/3 flex flex-col justify-start" data-aos="fade-right">
-        <div className="rounded-2xl overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.08)] bg-white/60 backdrop-blur-md border border-slate-200">
-          
-          <div className="aspect-[16/9] relative bg-slate-900 group">
-            {loading ? (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-10 h-10 border-4 border-slate-600 border-t-[#c19b52] rounded-full animate-spin"></div>
-              </div>
-            ) : featuredVideo ? (
-              <video 
-                className="w-full h-full object-contain bg-black"
-                controls 
-                preload="metadata"
-                src={featuredVideo.video_url || featuredVideo.url}
-              >
-                Your browser does not support the video tag.
-              </video>
-            ) : (
-              <div className="absolute inset-0 flex items-center justify-center text-slate-500">
-                No featured video available.
-              </div>
-            )}
+    <section className="relative w-full overflow-hidden">
+      <div className="w-full py-10 md:py-16 px-4 md:px-12 max-w-[1400px] mx-auto flex flex-col gap-16 md:gap-24 min-h-[70vh]">
+        
+        {/* Decorative Background Elements */}
+        {/* <div className="absolute top-10 right-10 opacity-30 pointer-events-none z-0">
+          <svg width="200" height="200" viewBox="0 0 100 100" fill="none" stroke="#B89355" strokeWidth="0.5">
+            <circle cx="50" cy="50" r="40" strokeDasharray="2 4" />
+            <path d="M50 0 L50 100 M0 50 L100 50 M15 15 L85 85 M15 85 L85 15" strokeOpacity="0.3"/>
+            <circle cx="50" cy="5" r="2" fill="#B89355" />
+            <circle cx="95" cy="50" r="2" fill="#B89355" />
+          </svg>
+        </div>
+        <div className="absolute bottom-0 right-0 opacity-20 pointer-events-none z-0">
+          <svg width="300" height="300" viewBox="0 0 100 100" fill="#B89355">
+            <path d="M80,50 A30,30 0 0,0 50,20 A40,40 0 0,1 50,80 A30,30 0 0,0 80,50 Z" />
+          </svg>
+        </div> */}
+
+        {/* --- Top Section: Live Class --- */}
+        <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-center relative z-10 lg:min-h-[50vh]">
+          {/* Left Side: NEW.png */}
+          <div className="flex-1 w-full max-w-2xl mx-auto flex justify-center" data-aos="fade-right">
+            <img 
+              src="/images/live.png" 
+              alt="Sara Tarot Card Reader Live Class" 
+              className="w-auto h-auto max-w-[85%] md:max-w-md max-h-[50vh] md:max-h-[75vh] rounded-2xl md:rounded-3xl drop-shadow-2xl cursor-pointer hover:scale-105 transition-transform duration-300" 
+              onClick={() => setIsZoomed(true)}
+              title="Click to view full image"
+            />
           </div>
-          
-          <div className="p-6 md:p-8">
-            {featuredVideo ? (
-              <>
-                <div className="flex items-center gap-3 mb-3 text-sm font-semibold text-slate-500 uppercase tracking-wider">
-                  <span>Lesson {featuredVideo.lesson_number}</span>
-                  <span className="w-1 h-1 rounded-full bg-slate-400"></span>
-                  <span>{featuredVideo.duration || 'N/A'}</span>
-                  <span className="w-1 h-1 rounded-full bg-slate-400"></span>
-                  <span className="text-[#c19b52]">Featured</span>
-                </div>
-                
-                <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4 leading-tight">
-                  {featuredVideo.title}
-                </h1>
-                
-                <p className="text-slate-600 text-lg leading-relaxed font-light mb-8 max-w-3xl line-clamp-3">
-                  {featuredVideo.description || "Step into the realm of Tarot and uncover the hidden truths waiting for you. This comprehensive masterclass covers everything from basic spreads to deep intuitive connections, empowering your choices and spiritual journey."}
-                </p>
-              </>
-            ) : (
-              <>
-                <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4 leading-tight">
-                  Intuitive Reading & <br/> The Fool's Journey
-                </h1>
-                <p className="text-slate-600 text-lg leading-relaxed font-light mb-8 max-w-3xl line-clamp-3">
-                  Step into the realm of Tarot and uncover the hidden truths waiting for you. 
-                </p>
-              </>
-            )}
+
+          {/* Right Side: Poster Content */}
+          <div className="flex-1 w-full flex flex-col justify-center items-center text-center lg:items-start lg:text-left lg:pl-10" data-aos="fade-left">
+            <p className="text-xl md:text-2xl font-serif italic text-[#B89355] mb-3 font-medium">
+              Unlock the Secrets of the Universe with
+            </p>
+            <h1 className="text-[1.8rem] md:text-[2.8rem] font-serif leading-[1.1] mb-5 font-bold text-[#0C3229] uppercase tracking-tight">
+              Sara Tarot Card Reader
+            </h1>
+            <div className="bg-[#E41E5D] text-white px-5 py-1.5 rounded-md font-bold tracking-[0.2em] text-base md:text-lg lg:text-xl mb-6 shadow-lg shadow-[#E41E5D]/30 inline-block">
+              LIVE CLASS
+            </div>
+            <h2 className="text-lg md:text-xl lg:text-2xl font-bold text-[#B89355] mb-5 tracking-wide">
+              30 DAYS BASIC TAROT COURSE
+            </h2>
+            <div className="flex flex-wrap justify-center lg:justify-start items-center gap-2 md:gap-4 text-base md:text-lg lg:text-xl font-bold text-[#0C3229] tracking-wider uppercase">
+              <span>Learn</span>
+              <span className="text-[#B89355]">•</span>
+              <span>Understand</span>
+              <span className="text-[#B89355]">•</span>
+              <span>Read</span>
+              <span className="text-[#B89355]">•</span>
+              <span>Transform</span>
+            </div>
+          </div>
+        </div>
+
+        {/* --- Bottom Section: Syllabus --- */}
+        <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-center relative z-10 lg:min-h-[50vh]">
+          {/* Left Side: Syllabus Graphic Image */}
+          <div className="flex-1 w-full max-w-2xl mx-auto flex justify-center" data-aos="fade-right">
+            <img 
+              src="/images/hero-1.webp" 
+              alt="Tarot Card Reading Class Syllabus" 
+              className="w-full max-w-lg object-contain drop-shadow-xl" 
+            />
+          </div>
+
+          {/* Right Side: Text & CTA */}
+          <div className="flex-1 w-full flex flex-col justify-center items-center text-center lg:items-start lg:text-left lg:pl-10" data-aos="fade-left">
+            <h2 className="text-[2.2rem] md:text-[3.2rem] font-serif leading-[1.1] mb-8 font-bold tracking-tight">
+              <span className="text-[#B89355] block mb-2 whitespace-nowrap">Unlock Your Intuition</span>
+              <span className="text-[#0C3229] block">Access Pre-Recorded</span>
+              <span className="text-[#0C3229] block">Tarot Classes</span>
+            </h2>
             
-            
-            <Link to="/videos" className="inline-flex items-center gap-2 px-8 py-3.5 bg-[#c19b52] hover:bg-[#b08b45] text-white font-bold tracking-wide rounded-lg transition-colors shadow-lg shadow-[#c19b52]/20">
-              <Play className="w-5 h-5 fill-current" /> GO TO CLASSES
+            <Link to="/videos" className="inline-block bg-[#B69352] hover:bg-[#a38043] text-white text-lg md:text-xl font-semibold py-3 px-8 md:py-3.5 md:px-10 rounded-md transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5">
+              Start Learning Now
             </Link>
           </div>
         </div>
+
       </div>
 
-      {/* Right Side: PDF Study Materials List */}
-      <div className="w-full lg:w-1/3 flex flex-col justify-start" data-aos="fade-left">
-        
-        <div className="flex items-center justify-between mb-6 pb-2 border-b-2 border-[#c19b52]/20">
-          <div className="flex items-center gap-3">
-            <div className="w-1.5 h-6 bg-[#c19b52] rounded-full"></div>
-            <h3 className="font-bold text-slate-900 uppercase tracking-widest text-lg">Study Materials</h3>
-          </div>
-          <Link to="/materials" className="text-xs font-bold text-[#c19b52] hover:text-slate-900 transition-colors tracking-widest uppercase">
-            View All <span className="ml-1">&gt;</span>
-          </Link>
+      {/* Image Zoom Modal */}
+      {isZoomed && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 md:p-8 cursor-pointer backdrop-blur-sm"
+          onClick={() => setIsZoomed(false)}
+        >
+          <img 
+            src="/images/live.png" 
+            alt="Sara Tarot Card Reader Live Class Full" 
+            className="max-w-full max-h-[90vh] object-contain rounded-xl shadow-2xl"
+          />
         </div>
-
-        <div className="flex flex-col gap-2">
-          {loading ? (
-             <div className="text-center py-4 text-slate-500">Loading materials...</div>
-          ) : pdfs.length === 0 ? (
-             <div className="text-center py-4 text-slate-500">No study materials available yet.</div>
-          ) : (
-            pdfs.slice(0, 4).map((pdf) => (
-              <div 
-                key={pdf.id} 
-                onClick={() => setSelectedPdf(pdf)}
-                className="flex items-center gap-4 p-3 rounded-xl hover:bg-white/60 transition-all border border-transparent hover:border-slate-200 cursor-pointer shadow-sm hover:shadow-md group"
-              >
-                <div className="w-20 h-16 rounded-lg overflow-hidden shrink-0 relative bg-slate-100 flex items-center justify-center">
-                  <FileText className="w-8 h-8 text-[#c19b52]/50 group-hover:scale-110 transition-transform duration-500" />
-                </div>
-                
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-bold text-slate-800 text-sm mb-1.5 line-clamp-2 group-hover:text-[#c19b52] transition-colors">
-                    {pdf.title}
-                  </h4>
-                  <div className="flex items-center gap-3 text-xs text-slate-500 font-medium">
-                    <span className="flex items-center gap-1"><Download className="w-3 h-3" /> {pdf.file_size || 'PDF'}</span>
-                  </div>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-        
-      </div>
-      
-      <PdfModal 
-        isOpen={!!selectedPdf} 
-        onClose={() => setSelectedPdf(null)} 
-        pdfUrl={selectedPdf ? (selectedPdf.file_url || selectedPdf.url) : null}
-        title={selectedPdf ? selectedPdf.title : ''}
-      />
+      )}
     </section>
   );
 };

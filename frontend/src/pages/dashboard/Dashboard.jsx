@@ -6,6 +6,7 @@ import { Play, PlayCircle, FileText, Download, Eye, Clock, BookOpen, LayoutDashb
 import { Link } from 'react-router-dom';
 import VideoManagement from '../../components/dashboard/VideoManagement';
 import PdfManagement from '../../components/dashboard/PdfManagement';
+import SyllabusManagement from '../../components/dashboard/SyllabusManagement';
 
 const Dashboard = () => {
   const { videos, pdfs, loading } = useContent();
@@ -229,6 +230,17 @@ const Dashboard = () => {
               <FileEdit className="w-5 h-5" />
               <span className="font-medium">Manage PDFs</span>
             </button>
+            <button
+              onClick={() => setActiveTab('manage_syllabus')}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${
+                activeTab === 'manage_syllabus' 
+                  ? 'bg-amber-500/10 text-amber-500' 
+                  : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+              }`}
+            >
+              <BookOpen className="w-5 h-5" />
+              <span className="font-medium">Manage Syllabus</span>
+            </button>
             <div className="pt-4 mt-4 border-t border-indigo-900/50">
               <Link
                 to="/"
@@ -247,6 +259,7 @@ const Dashboard = () => {
             {activeTab === 'course' && renderCourseContent()}
             {activeTab === 'manage_videos' && <VideoManagement />}
             {activeTab === 'manage_pdfs' && <PdfManagement />}
+            {activeTab === 'manage_syllabus' && <SyllabusManagement />}
           </div>
         </main>
       </div>

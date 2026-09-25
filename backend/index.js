@@ -9,6 +9,8 @@ const Course = require('./models/Course');
 const CourseVideo = require('./models/CourseVideo');
 const CourseMaterial = require('./models/CourseMaterial');
 const UserPurchase = require('./models/UserPurchase');
+const SyllabusCategory = require('./models/SyllabusCategory');
+const SyllabusVideo = require('./models/SyllabusVideo');
 
 // Associations
 Course.hasMany(CourseVideo, { foreignKey: 'course_id', as: 'videos' });
@@ -23,6 +25,7 @@ UserPurchase.belongsTo(Course, { foreignKey: 'course_id' });
 // Route imports
 const contentRoutes = require('./routes/contentRoutes');
 const accessRoutes = require('./routes/accessRoutes');
+const syllabusRoutes = require('./routes/syllabusRoutes');
 
 const app = express();
 app.set('trust proxy', 1);
@@ -65,6 +68,7 @@ app.get('/api/health', async (req, res) => {
 // API Routes
 app.use('/api/content', contentRoutes);
 app.use('/api/check-access', accessRoutes);
+app.use('/api/syllabus', syllabusRoutes);
 
 // (Old placeholder upload endpoint removed)
 
@@ -101,6 +105,30 @@ const syncAndSeed = async () => {
         { phone_number: '+0987654321', course_id: course.id, payment_status: 'PAID' }
       ]);
       console.log('🌱 Seed complete!');
+    }
+
+    // Seed Syllabus Categories if empty
+    const syllabusCount = await SyllabusCategory.count();
+    if (syllabusCount === 0) {
+      console.log('🌱 Seeding Syllabus Categories...');
+      const categories = [
+        { name: "78 Cards Meaning", slug: "cards-meaning", description: "Complete meaning of all 78 cards" },
+        { name: "Tarot Symbolic Meaning", slug: "symbolic-meaning", description: "Understand the hidden symbols" },
+        { name: "Numbers Meaning", slug: "numbers-meaning", description: "The power of numbers in Tarot" },
+        { name: "Colours Meaning", slug: "colours-meaning", description: "What colours reveal in cards" },
+        { name: "Zodiac Sign Meaning", slug: "zodiac-sign-meaning", description: "Zodiac connections in Tarot" },
+        { name: "Zodiac Connect with Tarot", slug: "zodiac-connect", description: "Bridging astrology and Tarot" },
+        { name: "Elements Meaning", slug: "elements-meaning", description: "Fire, Water, Air, Earth in Tarot" },
+        { name: "Elements connect with Tarot", slug: "elements-connect", description: "How elements influence readings" },
+        { name: "Time Frames of Suits", slug: "time-frames", description: "Timing and prediction methods" },
+        { name: "How to Spread", slug: "how-to-spread", description: "Learn different spreads" },
+        { name: "Type of Spread", slug: "type-of-spread", description: "Choose the right spread for your query" },
+        { name: "How to Cleanse Cards", slug: "how-to-cleanse", description: "Methods to purify your deck" },
+        { name: "How to Awake your intuition", slug: "awaken-intuition", description: "Tips to develop inner guidance" },
+        { name: "How to connect with Cards", slug: "connect-with-cards", description: "Build a personal bond with your deck" }
+      ];
+      await SyllabusCategory.bulkCreate(categories);
+      console.log('🌱 Syllabus Categories seeded!');
     }
   } catch (err) {
     console.error('❌ Sync/Seed Error:', err);

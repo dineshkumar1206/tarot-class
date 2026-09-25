@@ -1,13 +1,14 @@
 import React from 'react';
-import Navbar from '../components/Navbar';
 import Hero from '../components/home/Hero';
 import Categories from '../components/home/Categories';
 import PreRecordedCourses from '../components/home/PreRecordedCourses';
 
 const Home = () => {
   return (
-    <div className="min-h-screen font-sans selection:bg-[#c19b52]/30">
-      <Navbar />
+    <div 
+      className="min-h-screen font-sans selection:bg-[#c19b52]/30"
+      style={{ backgroundImage: 'url(/images/hero-bg.webp)', backgroundSize: 'cover', backgroundPosition: 'right 80px', backgroundAttachment: 'fixed', backgroundRepeat: 'no-repeat' }}
+    >
       <main className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)]">
         <Hero />
         <Categories />
