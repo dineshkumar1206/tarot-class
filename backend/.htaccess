@@ -1,0 +1,23 @@
+# Increase upload limit to 500MB for Apache
+LimitRequestBody 524288000
+
+<IfModule lsapi_module>
+   php_value upload_max_filesize 500M
+   php_value post_max_size 500M
+   php_value max_execution_time 600
+   php_value max_input_time 600
+</IfModule>
+
+<IfModule mod_php.c>
+   php_value upload_max_filesize 500M
+   php_value post_max_size 500M
+   php_value max_execution_time 600
+   php_value max_input_time 600
+</IfModule>
+
+<IfModule mod_php7.c>
+   php_value upload_max_filesize 500M
+   php_value post_max_size 500M
+   php_value max_execution_time 600
+   php_value max_input_time 600
+</IfModule>
